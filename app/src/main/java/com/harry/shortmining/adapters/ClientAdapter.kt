@@ -69,7 +69,13 @@ class ClientAdapter(private var clientList: List<Client>,
             holder.reLaunchButton.setOnClickListener {
                 onReLaunchClick(client) // Trigger callback
             }
-        } else {
+        }else if (client.status == "finished") {
+            holder.itemView.setOnClickListener {
+                onReLaunchClick(client) // Trigger callback
+            }
+        }
+
+        else {
             holder.reLaunchButton.visibility = View.GONE
         }
 

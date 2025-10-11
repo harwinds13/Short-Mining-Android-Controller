@@ -16,7 +16,9 @@ class MainActivity : AppCompatActivity() {
         buttonEnableService = findViewById(R.id.button)
         buttonClientViewActivity = findViewById(R.id.buttonToList)
         buttonEnableService.setOnClickListener {
-            startActivity(Intent(this, WebView::class.java))
+            val intent = Intent(this, WebView::class.java)
+            intent.putExtra("url", "https://hiring.amazon.ca")
+            startActivity(intent)
         }
         buttonClientViewActivity.setOnClickListener {
             startActivity(Intent(this, ClientSheetView::class.java))

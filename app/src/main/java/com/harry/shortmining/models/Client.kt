@@ -10,7 +10,8 @@ data class Client(
     val clientPhoneNumber: String = "",
     val clientEmail: String = "",
     val error: String = "",
-    val pod: String = ""
+    val pod: String = "",
+    val localStorage: String = ""
 ) {
     constructor() : this("", 0, "", "", "","")
 }

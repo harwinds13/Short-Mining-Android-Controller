@@ -22,6 +22,9 @@ class WebView : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_web_view)
+        val url = intent.getStringExtra("url") ?: "https://your-url.com"
+        val clientJson = intent.getStringExtra("localStorage") ?: ""
+
         sharedPreferences = getSharedPreferences("LocalStorage", Context.MODE_PRIVATE)
         executeServiceButton = findViewById(R.id.executeServiceButtons)
         webView = findViewById(R.id.webView)
@@ -29,7 +32,29 @@ class WebView : AppCompatActivity() {
         webView.settings.domStorageEnabled = true
         WebView.setWebContentsDebuggingEnabled(false)
         webView.addJavascriptInterface(WebAppInterface(), "AndroidInterface")
-        webView.loadUrl("https://hiring.amazon.ca")
+        webView.loadUrl(url)
+        val reloadButton = findViewById<Button>(R.id.reloadButton)
+        val webView = findViewById<WebView>(R.id.webView)
+        reloadButton.setOnClickListener {
+            webView.reload()
+        }
+        webView.webViewClient = object : WebViewClient() {
+            override fun onPageFinished(view: WebView?, url: String?) {
+                // Inject JavaScript to update localStorage
+                val data = JSONObject(clientJson)
+                val js = """
+                    (function() {
+                        var data = $data;
+                        for (var key in data) {
+                            if (data.hasOwnProperty(key)) {
+                                localStorage.setItem(key, data[key]);
+                            }
+                        }
+                    })();
+                """.trimIndent()
+                view?.evaluateJavascript(js, null)
+            }
+        }
 
         executeServiceButton.setOnClickListener {
             webView.evaluateJavascript(

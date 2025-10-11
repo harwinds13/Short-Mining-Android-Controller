@@ -16,6 +16,14 @@
             android:text="Execute Now"
             android:backgroundTint="#FF0000" />
 
+        <Button
+            android:id="@+id/reloadButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Reload"
+            android:backgroundTint="#1976D2"
+            android:layout_marginStart="16dp" />
+
     </LinearLayout>
 
     <WebView

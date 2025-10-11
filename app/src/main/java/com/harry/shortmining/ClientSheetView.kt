@@ -1,6 +1,7 @@
 package com.harry.shortmining
 
 import FirestoreService
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -18,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.firestore.FirebaseFirestore
 import com.harry.shortmining.adapters.ClientAdapter
 import com.harry.shortmining.models.Client
+import org.json.JSONObject
 
 class ClientSheetView : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
@@ -104,7 +106,14 @@ class ClientSheetView : AppCompatActivity() {
     private fun handleReLaunch(client: Client) {
         Toast.makeText(this, "Re-Launching for ${client.clientName}", Toast.LENGTH_SHORT).show()
         val firestoreService = FirestoreService()
-        firestoreService.updateStatusBYID( COLLECTION_NAME, client.bbCandidateId, "submitted")
+        if (client.status == "system_interrupt")
+            firestoreService.updateStatusBYID( COLLECTION_NAME, client.bbCandidateId, "submitted")
+        if (client.status == "finished"){
+            val intent = Intent(this, WebView::class.java)
+            intent.putExtra("url", "https://hiring.amazon.ca") // Your target website
+            intent.putExtra("localStorage", client.localStorage)
+            startActivity(intent)
+        }
     }
     private fun fetchClientsWithRealtimeUpdates() {
         showLoading(true)
@@ -144,6 +153,8 @@ class ClientSheetView : AppCompatActivity() {
         progressBar.visibility = if (show) View.VISIBLE else View.GONE
         recyclerView.visibility = if (show) View.GONE else View.VISIBLE
     }
+
+
 
 
 }
