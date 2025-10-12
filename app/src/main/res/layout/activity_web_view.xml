@@ -1,34 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#1A1A1A">
 
-    <LinearLayout
+    <!-- Button Bar with Card Effect -->
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center">
+        android:layout_margin="0dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="3dp"
+        android:backgroundTint="#232323">
 
-        <Button
-            android:id="@+id/executeServiceButtons"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Execute Now"
-            android:backgroundTint="#FF0000" />
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:padding="4dp">
 
-        <Button
-            android:id="@+id/reloadButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Reload"
-            android:backgroundTint="#1976D2"
-            android:layout_marginStart="16dp" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/executeServiceButtons"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="Execute"
+                app:backgroundTint="@color/colorPrimary"
+                android:textColor="#FFFFFF"
+                app:cornerRadius="24dp"
+                android:layout_weight="1"
+                android:elevation="2dp"
+                android:layout_marginEnd="4dp" />
 
-    </LinearLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/reloadButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="Reload"
+                app:backgroundTint="@color/colorAccent"
+                android:textColor="#FFFFFF"
+                app:cornerRadius="24dp"
+                android:layout_weight="1"
+                android:elevation="1dp"
+                android:layout_marginStart="4dp" />
 
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- WebView fills the rest of the screen -->
     <WebView
         android:id="@+id/webView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="#101010" />
 
 </LinearLayout>

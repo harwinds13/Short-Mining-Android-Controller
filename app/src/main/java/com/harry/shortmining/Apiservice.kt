@@ -16,89 +16,10 @@ import java.io.IOException
 import java.util.concurrent.CompletableFuture
 
 class ApiService (private val authToken: String){
-    val client = OkHttpClient()
-    val mediaType = "application/json".toMediaType()
-    fun invokeLocationApi(zipCode: String = "l6w", onResult: (String?) -> Unit) {
-        val body = "{\"query\":\"query queryGeoInfoByAddress(\$geoAddressQueryRequest: GeoAddressQueryRequest!) {\\n  queryGeoInfoByAddress(geoAddressQueryRequest: \$geoAddressQueryRequest) {\\n    country\\n    lat\\n    lng\\n    postalCode\\n    label\\n    municipality\\n    region\\n    subRegion\\n    addressNumber\\n    __typename\\n  }\\n}\\n\",\"variables\":{\"geoAddressQueryRequest\":{\"address\":\"$zipCode\",\"countries\":[\"CAN\"]}}}"
-        Log.i("HZ_EXT", "Request body: $body")
+    private val client = OkHttpClient()
+    private val mediaType = "application/json".toMediaType()
 
-        val request = Request.Builder()
-            .url("https://e5mquma77feepi2bdn4d6h3mpu.appsync-api.us-east-1.amazonaws.com/graphql")
-            .post(body.toRequestBody(mediaType))
-            .addHeader("accept", "*/*")
-            .addHeader("accept-language", "en-US,en;q=0.9")
-            .addHeader("authorization", authToken)
-            .addHeader("cache-control", "no-cache")
-            .addHeader("content-type", "application/json")
-            .addHeader("country", "Canada")
-            .addHeader("iscanary", "false")
-            .addHeader("origin", "https://hiring.amazon.ca")
-            .addHeader("pragma", "no-cache")
-            .addHeader("priority", "u=1, i")
-            .addHeader("referer", "https://hiring.amazon.ca/")
-            .addHeader(
-                "sec-ch-ua",
-                "\"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"138\", \"Google Chrome\";v=\"138\""
-            )
-            .addHeader("sec-ch-ua-mobile", "?0")
-            .addHeader("sec-ch-ua-platform", "\"Windows\"")
-            .addHeader("sec-fetch-dest", "empty")
-            .addHeader("sec-fetch-mode", "cors")
-            .addHeader("sec-fetch-site", "cross-site")
-            .addHeader(
-                "user-agent",
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
-            )
-            .build()
-        client.newCall(request).enqueue(object : okhttp3.Callback {
-            override fun onFailure(call: okhttp3.Call, e: IOException) {
-                Log.e("HZ_EXT", "Request failed: ${e.message}")
-                onResult(null)
-            }
-
-            override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
-                response.use {
-                    if (!it.isSuccessful) {
-                        Log.e("ATOZ_EXT", "Unexpected code: ${it.code}")
-                        onResult(null)
-                        return
-                    }
-                    Log.i("HZ_EXT", "Response code: ${it.code}")
-                    onResult(it.body?.string())
-                }
-            }
-        })
-
-    }
-
-    fun fetchLocation(zipCode: String):Triple<Double, Double, String> {
-        val future = CompletableFuture<Triple<Double, Double, String>?>()
-        try {
-            invokeLocationApi(zipCode) { responseBody ->
-                if (responseBody == null) {
-                    Log.e("HZ_EXT", "Response body is null")
-                    return@invokeLocationApi
-                }
-                val jsonObject = JSONObject(responseBody)
-                val data = jsonObject.getJSONObject("data")
-                val queryGeoInfoByAddress = data.getJSONArray("queryGeoInfoByAddress")
-                if (queryGeoInfoByAddress.length() > 0) {
-                    val firstResult = queryGeoInfoByAddress.getJSONObject(0)
-                    val lat = firstResult.getDouble("lat")
-                    val lng = firstResult.getDouble("lng")
-                    val label = firstResult.getString("label")
-                    future.complete(Triple(lat, lng, label))
-                }
-            }
-
-        } catch (e: Exception) {
-            Log.e("HZ_EXT", "Error parsing response: ${e.message}")
-            future.complete(null)
-        }
-        return future.get() ?: Triple(0.0, 0.0, "Unknown Location")
-    }
-
-    fun invokeGraphQlTOGetShifts(log:Double,  lat:Double, distance:String): String {
+    fun invokeGraphQlTOGetShifts(): String {
         val future = CompletableFuture<String?>()
         val client = OkHttpClient()
         val mediaType = "application/json".toMediaType()
@@ -128,13 +49,13 @@ class ApiService (private val authToken: String){
         try {
             val response = client.newCall(request).execute()
             if (!response.isSuccessful) {
-                Log.e("HZ_EXT", "Unexpected code: ${response.code}")
+                Log.e("SM", "Unexpected code: ${response.code}")
                 return "No_Data_Found"
             }
             val responseBody = response.body?.string()
             return responseBody ?: "No_Data_Found"
         } catch (e: IOException) {
-            Log.e("HZ_EXT", "Request failed.")
+            Log.e("SM", "Request failed.")
             return "No_Data_Found"
         }
     }
@@ -154,10 +75,6 @@ class ApiService (private val authToken: String){
             put("variables", variables)
         }.toString()
 
-        Log.i("HZ_EXT", "Request Body: $requestBody")
-
-//        return
-        // Build the request
         val request = Request.Builder()
             .url(url)
             .post(requestBody.toRequestBody(mediaType))
@@ -182,16 +99,15 @@ class ApiService (private val authToken: String){
             .addHeader("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36")
             .build()
 
-        // Execute the request
         client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) {
-                Log.e("HZ_EXT", "Unexpected code: ${response.code}")
+                Log.e("SHORT_MINING", "Unexpected code: ${response.code}")
                 return null
             }
 
             val responseBody = response.body?.string()
             return fetchCandidateDetails(responseBody ?: "")
-            Log.i("HZ_EXT", "Response Body: $responseBody")
+            Log.i("SHORT_MINING", "Response Body: $responseBody")
         }
     }
 
@@ -208,6 +124,8 @@ class ApiService (private val authToken: String){
             null
         }
     }
+
+
 
 }
 

@@ -12,8 +12,6 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Button
 import org.json.JSONObject
-import com.google.gson.Gson
-import com.harry.shortmining.models.LocalStorage
 
 class WebView : AppCompatActivity() {
     private lateinit var webView: WebView
@@ -48,25 +46,36 @@ class WebView : AppCompatActivity() {
         val webView = findViewById<WebView>(R.id.webView)
         reloadButton.setOnClickListener {
             webView.reload()
-            val js = """
+
+        }
+
+        webView.webViewClient = object : WebViewClient() {
+            override fun onPageFinished(view: WebView?, url: String?) {
+                if(accessToken.isNotEmpty()){
+                    val js = """
                     (function() {
                         try {
-                         localStorage.setItem("accessToken", $accessToken);
-                         localStorage.setItem("awswaf_session_storage", $awswaf_session_storage);
-                         localStorage.setItem("bbCandidateId", $bbCandidateId);
-                         localStorage.setItem("idToken", $idToken);
-                         localStorage.setItem("awswaf_token_refresh_timestamp", $awswaf_token_refresh_timestamp);
-                         localStorage.setItem("sessionToken", $sessionToken);
-                         localStorage.setItem("refreshToken", $refreshToken);
-                         localStorage.setItem("sfCandidateId", $sfCandidateId);
-                         AndroidInterface.sendLocalStorage(JSON.stringify(localStorage));
+                         localStorage.setItem("accessToken", "$accessToken");
+                         localStorage.setItem("awswaf_session_storage", "$awswaf_session_storage");
+                         localStorage.setItem("bbCandidateId", "$bbCandidateId");
+                         localStorage.setItem("idToken", "$idToken");
+                         localStorage.setItem("awswaf_token_refresh_timestamp", "$awswaf_token_refresh_timestamp");
+                         localStorage.setItem("sessionToken", "$sessionToken");
+                         localStorage.setItem("refreshToken", "$refreshToken");
+                         localStorage.setItem("sfCandidateId", "$sfCandidateId");
                         } catch (e) {
                             console.error("localStorage injection error", e);
                         }
                     })();
                 """.trimIndent()
-            webView.evaluateJavascript(js, null)
+                    view?.evaluateJavascript(js, null)
+                }
 
+            }
+            override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
+                view.loadUrl(url)
+                return true
+            }
         }
 
         executeServiceButton.setOnClickListener {
@@ -111,8 +120,7 @@ class WebView : AppCompatActivity() {
         @JavascriptInterface
         fun sendLocalStorage(data: String) {
             if (data.isNotEmpty()) {
-                Log.i("HY", data)
-//                storeDataInSharedPreferences(data)
+                storeDataInSharedPreferences(data)
             } else {
                 Log.w("SHORT_MINING", "No data found in localStorage.")
             }
@@ -141,11 +149,10 @@ class WebView : AppCompatActivity() {
                 storedJson.put("distance", jsonObject.getString("distance"))
                 storedJson.put("location", jsonObject.getString("location"))
                 storedJson.put("subRegion", jsonObject.getString("subRegion"))
-                storedJson.put("localStorage", jsonObject.getString("fullLocal"))
 
                 firestore.get_doc_status(this, "client_sheet", bbCandidateId) { status ->
                     if (status in listOf("finished","system_interrupt", "generic_error")) {
-                        storedJson.put("status", "token_expire")
+                        storedJson.put("status", "submitted")
                     }
                     else{
                         storedJson.put("status", status)
@@ -165,7 +172,7 @@ class WebView : AppCompatActivity() {
         }
         val newData = jsonObject.apply {
             put("expireTime", expireTime)
-            put("status", "token_expire")
+            put("status", "submitted")
         }
 
 

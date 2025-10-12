@@ -110,7 +110,15 @@ class ClientSheetView : AppCompatActivity() {
             firestoreService.updateStatusBYID( COLLECTION_NAME, client.bbCandidateId, "submitted")
         if (client.status == "finished"){
             val intent = Intent(this, WebView::class.java)
-            intent.putExtra("url", "https://hiring.amazon.ca") // Your target website
+            if(client.job.isNotEmpty()){
+                val jobId = client.job
+                val schId = client.sch
+                val applicationId = client.applicationId
+                intent.putExtra("url", "https://hiring.amazon.ca/application/ca/?CS=true&jobId=$jobId&locale=en-CA&scheduleId=$schId&ssoEnabled=1#/resume-application?CS=true&jobId=$jobId&locale=en-CA&scheduleId=$schId&ssoEnabled=1&applicationId=$applicationId")
+            }else{
+                intent.putExtra("url", "https://hiring.amazon.ca/app#/myApplications?intcmpid=gotomyjobsleft")
+            }
+
             intent.putExtra("accessToken", client.fullLocal.accessToken)
             intent.putExtra("awswaf_session_storage", client.fullLocal.awswaf_session_storage)
             intent.putExtra("bbCandidateId", client.fullLocal.bbCandidateId)
@@ -119,7 +127,26 @@ class ClientSheetView : AppCompatActivity() {
             intent.putExtra("awswaf_token_refresh_timestamp", client.fullLocal.refreshToken)
             intent.putExtra("sessionToken", client.fullLocal.sessionToken)
             intent.putExtra("sfCandidateId", client.fullLocal.sfCandidateId)
+
+
+            firestoreService.updateStatusBYID("client_sheet", client.bbCandidateId,"documentation")
             startActivity(intent)
+
+        }
+        if (client.status == "token_expired"){
+            val intent = Intent(this, WebView::class.java)
+            intent.putExtra("url", "https://hiring.amazon.ca/app#/login?redirectUrl=https%3A%2F%2Fhiring.amazon.ca%2F")
+            intent.putExtra("accessToken", client.fullLocal.accessToken)
+            intent.putExtra("awswaf_session_storage", client.fullLocal.awswaf_session_storage)
+            intent.putExtra("bbCandidateId", client.fullLocal.bbCandidateId)
+            intent.putExtra("idToken", client.fullLocal.idToken)
+            intent.putExtra("awswaf_token_refresh_timestamp", client.fullLocal.awswaf_token_refresh_timestamp)
+            intent.putExtra("awswaf_token_refresh_timestamp", client.fullLocal.refreshToken)
+            intent.putExtra("sessionToken", client.fullLocal.sessionToken)
+            intent.putExtra("sfCandidateId", client.fullLocal.sfCandidateId)
+
+            startActivity(intent)
+
         }
     }
     private fun fetchClientsWithRealtimeUpdates() {

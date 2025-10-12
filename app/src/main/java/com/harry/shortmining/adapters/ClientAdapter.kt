@@ -57,7 +57,7 @@ class ClientAdapter(private var clientList: List<Client>,
 
         when (client.status) {
             "finished" -> holder.itemView.setBackgroundColor(holder.itemView.context.getColor(R.color.status_finished))
-            "waiting" -> holder.itemView.setBackgroundColor(holder.itemView.context.getColor(R.color.status_waiting))
+            "documentation" -> holder.itemView.setBackgroundColor(holder.itemView.context.getColor(R.color.status_waiting))
             "processing" -> holder.itemView.setBackgroundColor(holder.itemView.context.getColor(R.color.status_processing))
             "token_expired","system_interrupt","generic_error" -> holder.itemView.setBackgroundColor(holder.itemView.context.getColor(R.color.status_error))
             else -> holder.itemView.setBackgroundColor(holder.itemView.context.getColor(R.color.status_default))
@@ -69,7 +69,7 @@ class ClientAdapter(private var clientList: List<Client>,
             holder.reLaunchButton.setOnClickListener {
                 onReLaunchClick(client) // Trigger callback
             }
-        }else if (client.status == "finished") {
+        }else if (client.status == "finished" || client.status == "token_expired") {
             holder.itemView.setOnClickListener {
                 onReLaunchClick(client) // Trigger callback
             }

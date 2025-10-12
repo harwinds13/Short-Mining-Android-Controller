@@ -6,24 +6,99 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <Button
-        android:id="@+id/button"
-        android:layout_width="wrap_content"
+    <!-- Console Header with Clear Logs button -->
+    <LinearLayout
+        android:id="@+id/logHeader"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="webView"
+        android:orientation="horizontal"
+        android:background="#232323"
+        android:padding="8dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp" />
+        android:layout_margin="4dp">
 
-    <Button
-        android:id="@+id/buttonToList"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Client List"
-        app:layout_constraintTop_toBottomOf="@id/button"
+        <TextView
+            android:id="@+id/logTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Shift Logs"
+            android:layout_marginTop="16dp"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:layout_weight="1"
+            android:gravity="center_vertical" />
+
+        <ImageButton
+            android:id="@+id/buttonClearLogs"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_menu_delete"
+            android:contentDescription="Clear Logs"
+            android:padding="8dp"
+            app:tint="#FF9800" />
+    </LinearLayout>
+
+    <!-- Console Screen -->
+    <ScrollView
+        android:id="@+id/consoleScrollView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#1A1A1A"
+        app:layout_constraintTop_toBottomOf="@+id/logHeader"
+        app:layout_constraintBottom_toTopOf="@+id/buttonBar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp" />
+        android:layout_marginStart="4dp"
+        android:layout_marginEnd="4dp">
+
+        <TextView
+            android:id="@+id/consoleTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:typeface="monospace"
+            android:text="Console output will appear here..."
+            android:padding="12dp" />
+    </ScrollView>
+
+    <!-- Button Bar (WebView & Client List) -->
+    <LinearLayout
+        android:id="@+id/buttonBar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:padding="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_margin="16dp">
+
+        <Button
+            android:id="@+id/button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Web View"
+            android:backgroundTint="@color/colorPrimary"
+            android:textColor="#FFFFFF"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:padding="12dp" />
+
+        <Button
+            android:id="@+id/buttonToList"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Client List"
+            android:backgroundTint="@color/colorAccent"
+            android:textColor="#FFFFFF"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:padding="12dp" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

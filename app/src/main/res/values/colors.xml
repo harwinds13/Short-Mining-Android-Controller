@@ -5,6 +5,10 @@
     <color name="status_finished">#DFF2BF</color> <!-- Light Green -->
     <color name="status_error">#FFBABA</color>    <!-- Light Red -->
     <color name="status_processing">#BDE5F8</color> <!-- Light Yellow -->
-    <color name="status_waiting">#FEEFB3</color>   <!-- Light Blue -->
+    <color name="status_waiting">#BFFF00</color>   <!-- Light Blue -->
     <color name="status_default">#FFFFFF</color>
+    <color name="colorPrimary">#2196F3</color> <!-- Blue accent for buttons -->
+    <color name="colorAccent">#FF9800</color>  <!-- Orange for secondary buttons -->
+    <color name="consoleBackground">#1A1A1A</color> <!-- Near-black for console -->
+    <color name="consoleText">#FFFFFF</color> <!-- White console text -->
 </resources>
