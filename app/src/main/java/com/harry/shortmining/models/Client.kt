@@ -11,7 +11,20 @@ data class Client(
     val clientEmail: String = "",
     val error: String = "",
     val pod: String = "",
-    val localStorage: String = ""
+    val fullLocal: LocalStorage = LocalStorage()
 ) {
     constructor() : this("", 0, "", "", "","")
+}
+
+class LocalStorage (
+    val accessToken:String = "",
+    val awswaf_session_storage:String = "",
+    val bbCandidateId:String = "" ,
+    val awswaf_token_refresh_timestamp:String = "",
+    val idToken:String= "",
+    val refreshToken:String="",
+    val sessionToken:String="",
+    val sfCandidateId:String=""
+    ){
+
 }

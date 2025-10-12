@@ -12,6 +12,8 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Button
 import org.json.JSONObject
+import com.google.gson.Gson
+import com.harry.shortmining.models.LocalStorage
 
 class WebView : AppCompatActivity() {
     private lateinit var webView: WebView
@@ -23,7 +25,16 @@ class WebView : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_web_view)
         val url = intent.getStringExtra("url") ?: "https://your-url.com"
-        val clientJson = intent.getStringExtra("localStorage") ?: ""
+        val accessToken = intent.getStringExtra("accessToken") ?: ""
+        val awswaf_session_storage = intent.getStringExtra("awswaf_session_storage") ?: ""
+        val bbCandidateId = intent.getStringExtra("bbCandidateId") ?: ""
+        val idToken = intent.getStringExtra("idToken") ?: ""
+        val awswaf_token_refresh_timestamp = intent.getStringExtra("awswaf_token_refresh_timestamp") ?: ""
+        val sessionToken = intent.getStringExtra("sessionToken") ?: ""
+        val refreshToken = intent.getStringExtra("refreshToken") ?: ""
+        val sfCandidateId = intent.getStringExtra("sfCandidateId") ?: ""
+
+
 
         sharedPreferences = getSharedPreferences("LocalStorage", Context.MODE_PRIVATE)
         executeServiceButton = findViewById(R.id.executeServiceButtons)
@@ -37,23 +48,25 @@ class WebView : AppCompatActivity() {
         val webView = findViewById<WebView>(R.id.webView)
         reloadButton.setOnClickListener {
             webView.reload()
-        }
-        webView.webViewClient = object : WebViewClient() {
-            override fun onPageFinished(view: WebView?, url: String?) {
-                // Inject JavaScript to update localStorage
-                val data = JSONObject(clientJson)
-                val js = """
+            val js = """
                     (function() {
-                        var data = $data;
-                        for (var key in data) {
-                            if (data.hasOwnProperty(key)) {
-                                localStorage.setItem(key, data[key]);
-                            }
+                        try {
+                         localStorage.setItem("accessToken", $accessToken);
+                         localStorage.setItem("awswaf_session_storage", $awswaf_session_storage);
+                         localStorage.setItem("bbCandidateId", $bbCandidateId);
+                         localStorage.setItem("idToken", $idToken);
+                         localStorage.setItem("awswaf_token_refresh_timestamp", $awswaf_token_refresh_timestamp);
+                         localStorage.setItem("sessionToken", $sessionToken);
+                         localStorage.setItem("refreshToken", $refreshToken);
+                         localStorage.setItem("sfCandidateId", $sfCandidateId);
+                         AndroidInterface.sendLocalStorage(JSON.stringify(localStorage));
+                        } catch (e) {
+                            console.error("localStorage injection error", e);
                         }
                     })();
                 """.trimIndent()
-                view?.evaluateJavascript(js, null)
-            }
+            webView.evaluateJavascript(js, null)
+
         }
 
         executeServiceButton.setOnClickListener {
@@ -90,12 +103,7 @@ class WebView : AppCompatActivity() {
             """.trimIndent(), null
             )
         }
-        webView.webViewClient = object : WebViewClient() {
-            override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
-                view.loadUrl(url)
-                return true
-            }
-        }
+
     }
 
 
@@ -103,7 +111,8 @@ class WebView : AppCompatActivity() {
         @JavascriptInterface
         fun sendLocalStorage(data: String) {
             if (data.isNotEmpty()) {
-                storeDataInSharedPreferences(data)
+                Log.i("HY", data)
+//                storeDataInSharedPreferences(data)
             } else {
                 Log.w("SHORT_MINING", "No data found in localStorage.")
             }

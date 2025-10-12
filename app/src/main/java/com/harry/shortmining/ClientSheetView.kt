@@ -111,7 +111,14 @@ class ClientSheetView : AppCompatActivity() {
         if (client.status == "finished"){
             val intent = Intent(this, WebView::class.java)
             intent.putExtra("url", "https://hiring.amazon.ca") // Your target website
-            intent.putExtra("localStorage", client.localStorage)
+            intent.putExtra("accessToken", client.fullLocal.accessToken)
+            intent.putExtra("awswaf_session_storage", client.fullLocal.awswaf_session_storage)
+            intent.putExtra("bbCandidateId", client.fullLocal.bbCandidateId)
+            intent.putExtra("idToken", client.fullLocal.idToken)
+            intent.putExtra("awswaf_token_refresh_timestamp", client.fullLocal.awswaf_token_refresh_timestamp)
+            intent.putExtra("awswaf_token_refresh_timestamp", client.fullLocal.refreshToken)
+            intent.putExtra("sessionToken", client.fullLocal.sessionToken)
+            intent.putExtra("sfCandidateId", client.fullLocal.sfCandidateId)
             startActivity(intent)
         }
     }
