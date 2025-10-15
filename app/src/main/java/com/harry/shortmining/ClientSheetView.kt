@@ -133,17 +133,9 @@ class ClientSheetView : AppCompatActivity() {
             startActivity(intent)
 
         }
-        if (client.status == "token_expired"){
+        if (client.status in  listOf("token_expired") ){
             val intent = Intent(this, WebView::class.java)
-            intent.putExtra("url", "https://hiring.amazon.ca/app#/login?redirectUrl=https%3A%2F%2Fhiring.amazon.ca%2F")
-            intent.putExtra("accessToken", client.fullLocal.accessToken)
-            intent.putExtra("awswaf_session_storage", client.fullLocal.awswaf_session_storage)
-            intent.putExtra("bbCandidateId", client.fullLocal.bbCandidateId)
-            intent.putExtra("idToken", client.fullLocal.idToken)
-            intent.putExtra("awswaf_token_refresh_timestamp", client.fullLocal.awswaf_token_refresh_timestamp)
-            intent.putExtra("awswaf_token_refresh_timestamp", client.fullLocal.refreshToken)
-            intent.putExtra("sessionToken", client.fullLocal.sessionToken)
-            intent.putExtra("sfCandidateId", client.fullLocal.sfCandidateId)
+            intent.putExtra("url", "https://hiring.amazon.ca")
 
             startActivity(intent)
 

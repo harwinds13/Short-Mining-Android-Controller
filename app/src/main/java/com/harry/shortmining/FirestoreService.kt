@@ -11,25 +11,15 @@ class FirestoreService() {
         db.collection(collectionName).document(bbCandidateId).get()
             .addOnSuccessListener { document ->
                 if (document != null && document.exists()) {
-                    val doc_data = document.data
-                    if (doc_data != null && data.get("status") != "processing") {
-
-                        db.collection(collectionName).document(bbCandidateId).set(data.toMap())
-                            .addOnSuccessListener {
-                                Log.d("Firestore", "DocumentSnapshot successfully written!")
-                                Toast.makeText(context, "Data for updated successfully.", Toast.LENGTH_LONG).show()
-                            }
-                            .addOnFailureListener { e ->
-                                Toast.makeText(context, "Error writing document.", Toast.LENGTH_LONG).show()
-                                Log.w("Firestore", "Error writing document", e)
-                            }
-
-
-                    }
-                    else{
-                        Toast.makeText(context, "Application is in process, changes cannot be committed.", Toast.LENGTH_LONG).show()
-                    }
-
+                    db.collection(collectionName).document(bbCandidateId).update(data.toMap())
+                        .addOnSuccessListener {
+                            Log.d("Firestore", "DocumentSnapshot successfully written!")
+                            Toast.makeText(context, "Data for updated successfully.", Toast.LENGTH_LONG).show()
+                        }
+                        .addOnFailureListener { e ->
+                            Toast.makeText(context, "Error writing document.", Toast.LENGTH_LONG).show()
+                            Log.w("Firestore", "Error writing document", e)
+                        }
                 } else {
                     Log.d("Firestore", "No such document")
                     db.collection(collectionName).document(bbCandidateId).set(data.toMap())
@@ -100,7 +90,21 @@ class FirestoreService() {
             }
     }
 
-
+    fun retrieveDocumentByID(collectionName: String, bbCandidateId: String, onResult: (Map<String, Any>?) -> Unit) {
+        db.collection(collectionName).document(bbCandidateId).get()
+            .addOnSuccessListener { document ->
+                if (document != null && document.exists()) {
+                    onResult(document.data)
+                } else {
+                    Log.d("Firestore", "No such document")
+                    onResult(null)
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.w("Firestore", "Error fetching document", e)
+                onResult(null)
+            }
+    }
 
     private fun JSONObject.toMap(): Map<String, Any> {
         val map = mutableMapOf<String, Any>()
@@ -132,4 +136,5 @@ class FirestoreService() {
         }
         return list
     }
+
 }

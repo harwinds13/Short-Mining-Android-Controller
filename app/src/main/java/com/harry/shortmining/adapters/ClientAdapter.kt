@@ -69,7 +69,7 @@ class ClientAdapter(private var clientList: List<Client>,
             holder.reLaunchButton.setOnClickListener {
                 onReLaunchClick(client) // Trigger callback
             }
-        }else if (client.status == "finished" || client.status == "token_expired") {
+        }else if (client.status in listOf( "finished", "token_expired","processing")) {
             holder.itemView.setOnClickListener {
                 onReLaunchClick(client) // Trigger callback
             }

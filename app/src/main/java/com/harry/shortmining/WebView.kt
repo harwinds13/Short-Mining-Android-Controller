@@ -11,6 +11,7 @@ import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Button
+import android.widget.Toast
 import org.json.JSONObject
 
 class WebView : AppCompatActivity() {
@@ -120,7 +121,7 @@ class WebView : AppCompatActivity() {
         @JavascriptInterface
         fun sendLocalStorage(data: String) {
             if (data.isNotEmpty()) {
-                storeDataInSharedPreferences(data)
+                storeDataInDataBase(data)
             } else {
                 Log.w("SHORT_MINING", "No data found in localStorage.")
             }
@@ -128,76 +129,37 @@ class WebView : AppCompatActivity() {
     }
 
 
-    private fun storeDataInSharedPreferences(data: String) {
+    private fun storeDataInDataBase(data: String) {
         val firestore = FirestoreService()
         val currentTime = System.currentTimeMillis()
         val jsonObject = JSONObject(data)
         val bbCandidateId = jsonObject.getString("bbCandidateId")
-        val expireTime = currentTime + 2 * 60 * 60 * 1000 // 2 hours from now
+        val expireTime = currentTime + 118 * 60 * 1000
 
-        val storedData = sharedPreferences.getString(bbCandidateId, null)
-        if (storedData != null) {
-            val storedJson = JSONObject(storedData)
-            val storedExpireTime = storedJson.getLong("expireTime")
 
-            // Data exists and is not expired
-            if (currentTime < storedExpireTime) {
-                Log.d("SHORT_MINING", "Data for $bbCandidateId already exists and is not expired.")
-                storedJson.put("lng", jsonObject.getDouble("lng"))
-                storedJson.put("lat", jsonObject.getDouble("lat"))
-                storedJson.put("jobType", jsonObject.getString("jobType"))
-                storedJson.put("distance", jsonObject.getString("distance"))
-                storedJson.put("location", jsonObject.getString("location"))
-                storedJson.put("subRegion", jsonObject.getString("subRegion"))
+        firestore.retrieveDocumentByID( "client_sheet", bbCandidateId){
+            doc ->
+            if (doc != null ) {
+                val status = doc["status"] as? String
+                if (status in listOf("finished","system_interrupt", "generic_error","documentation","token_expired")
+                        && doc["expireTime"] != null && (doc["expireTime"] as Long) > currentTime) {
+                    jsonObject.put("status", "submitted")
+                    firestore.addDocument(this,"client_sheet", bbCandidateId, jsonObject)
+                } else if (status in listOf("processing","token_expired","finished","documentation")
+                        && doc["expireTime"] != null && (doc["expireTime"] as Long) < currentTime) {
 
-                firestore.get_doc_status(this, "client_sheet", bbCandidateId) { status ->
-                    if (status in listOf("finished","system_interrupt", "generic_error")) {
-                        storedJson.put("status", "submitted")
-                    }
-                    else{
-                        storedJson.put("status", status)
-                    }
+                    jsonObject.put("status", "submitted")
+                    jsonObject.put("expireTime", expireTime)
+                    firestore.addDocument(this,"client_sheet", bbCandidateId, jsonObject)
+                }else if(status in listOf("processing")
+                    && doc["expireTime"] != null && (doc["expireTime"] as Long) > currentTime){
+                    Toast.makeText(this, "Application is in process, changes cannot be committed.", Toast.LENGTH_LONG).show()
                 }
-                // Save updated data
-                sharedPreferences.edit().apply {
-                    putString(bbCandidateId, storedJson.toString())
-                    apply()
-                }
-
-
-                firestore.addDocument(this,"client_sheet", bbCandidateId, storedJson)
-
-                return@storeDataInSharedPreferences
+            } else {
+                jsonObject.put("status", "submitted")
+                jsonObject.put("expireTime", expireTime)
+                firestore.addDocument(this,"client_sheet", bbCandidateId, jsonObject)
             }
         }
-        val newData = jsonObject.apply {
-            put("expireTime", expireTime)
-            put("status", "submitted")
-        }
-
-
-        val apiService = ApiService(jsonObject.getString("accessToken"))
-         val candidateDetails  = apiService.queryCandidate(bbCandidateId)
-        candidateDetails?.let { (firstName, phoneNumber, emailId) ->
-            newData.apply {
-                put("clientName", firstName)
-                put("clientPhoneNumber", phoneNumber)
-                put("clientEmail", emailId)
-            }
-        } ?: Log.e("CandidateDetails", "Failed to fetch candidate details.")
-
-
-
-
-        Log.i("SHORT_MINING", "Storing data for $bbCandidateId: $newData")
-        sharedPreferences.edit().apply {
-                putString(bbCandidateId, newData.toString())
-                    apply()
-        }
-            Log.d("SharedPreferences", "Data stored successfully.")
-
-        firestore.addDocument(this,"client_sheet", bbCandidateId, newData)
-
     }
-
 }
