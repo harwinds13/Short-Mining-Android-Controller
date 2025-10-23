@@ -12,6 +12,10 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Button
 import android.widget.Toast
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
 class WebView : AppCompatActivity() {
@@ -80,6 +84,8 @@ class WebView : AppCompatActivity() {
         }
 
         executeServiceButton.setOnClickListener {
+            // TODO i want on popup on screen where i can add few more parameters
+
             webView.evaluateJavascript(
                 """
             (function() {
@@ -135,7 +141,7 @@ class WebView : AppCompatActivity() {
         val jsonObject = JSONObject(data)
         val bbCandidateId = jsonObject.getString("bbCandidateId")
         val expireTime = currentTime + 118 * 60 * 1000
-
+        var isFirstAttempt = false
 
         firestore.retrieveDocumentByID( "client_sheet", bbCandidateId){
             doc ->
@@ -144,11 +150,13 @@ class WebView : AppCompatActivity() {
                 if (status in listOf("finished","system_interrupt", "generic_error","documentation","token_expired")
                         && doc["expireTime"] != null && (doc["expireTime"] as Long) > currentTime) {
                     jsonObject.put("status", "submitted")
+                    jsonObject.put("status_new", "submitted")
                     firestore.addDocument(this,"client_sheet", bbCandidateId, jsonObject)
-                } else if (status in listOf("processing","token_expired","finished","documentation")
+                } else if (status in listOf("processing","token_expired","finished","documentation","submitted")
                         && doc["expireTime"] != null && (doc["expireTime"] as Long) < currentTime) {
 
                     jsonObject.put("status", "submitted")
+                    jsonObject.put("status_new", "submitted")
                     jsonObject.put("expireTime", expireTime)
                     firestore.addDocument(this,"client_sheet", bbCandidateId, jsonObject)
                 }else if(status in listOf("processing")
@@ -156,10 +164,27 @@ class WebView : AppCompatActivity() {
                     Toast.makeText(this, "Application is in process, changes cannot be committed.", Toast.LENGTH_LONG).show()
                 }
             } else {
+                lifecycleScope.launch {
+                    val apiService = ApiService(jsonObject.getString("accessToken"))
+                    val candidateDetails = withContext(Dispatchers.IO) {
+                        apiService.queryCandidate(bbCandidateId)
+                    }
+
+                    candidateDetails?.let { (firstName, phoneNumber, emailId) ->
+                        jsonObject.put("clientName", firstName)
+                        jsonObject.put("clientPhoneNumber", phoneNumber)
+                        jsonObject.put("clientEmail", emailId)
+                    } ?: Log.e("CandidateDetails", "Failed to fetch candidate details.")
+
+                    firestore.addDocument(this@WebView, "client_sheet", bbCandidateId, jsonObject)
+                }
                 jsonObject.put("status", "submitted")
+                jsonObject.put("status_new", "submitted")
                 jsonObject.put("expireTime", expireTime)
                 firestore.addDocument(this,"client_sheet", bbCandidateId, jsonObject)
             }
         }
+
+
     }
 }

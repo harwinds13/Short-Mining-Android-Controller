@@ -57,7 +57,9 @@ class ClientAdapter(private var clientList: List<Client>,
 
         when (client.status) {
             "finished" -> holder.itemView.setBackgroundColor(holder.itemView.context.getColor(R.color.status_finished))
-            "documentation" -> holder.itemView.setBackgroundColor(holder.itemView.context.getColor(R.color.status_waiting))
+            "documentation" -> holder.itemView.setBackgroundColor(holder.itemView.context.getColor(R.color.status_finished))
+            "offer-accepted" -> holder.itemView.setBackgroundColor(holder.itemView.context.getColor(R.color.status_finished))
+            "general-questions-completed" -> holder.itemView.setBackgroundColor(holder.itemView.context.getColor(R.color.status_finished))
             "processing" -> holder.itemView.setBackgroundColor(holder.itemView.context.getColor(R.color.status_processing))
             "token_expired","system_interrupt","generic_error" -> holder.itemView.setBackgroundColor(holder.itemView.context.getColor(R.color.status_error))
             else -> holder.itemView.setBackgroundColor(holder.itemView.context.getColor(R.color.status_default))
@@ -69,7 +71,7 @@ class ClientAdapter(private var clientList: List<Client>,
             holder.reLaunchButton.setOnClickListener {
                 onReLaunchClick(client) // Trigger callback
             }
-        }else if (client.status in listOf( "finished", "token_expired","processing")) {
+        }else if (client.status in listOf( "finished", "token_expired","processing","documentation","offer-accepted","general-questions-completed")) {
             holder.itemView.setOnClickListener {
                 onReLaunchClick(client) // Trigger callback
             }

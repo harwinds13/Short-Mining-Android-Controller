@@ -108,7 +108,7 @@ class ClientSheetView : AppCompatActivity() {
         val firestoreService = FirestoreService()
         if (client.status == "system_interrupt")
             firestoreService.updateStatusBYID( COLLECTION_NAME, client.bbCandidateId, "submitted")
-        if (client.status == "finished"){
+        if (client.status in listOf( "finished","documentation","general-questions-completed","offer-accepted")){
             val intent = Intent(this, WebView::class.java)
             if(client.job.isNotEmpty()){
                 val jobId = client.job

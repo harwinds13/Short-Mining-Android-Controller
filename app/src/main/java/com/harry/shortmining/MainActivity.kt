@@ -44,19 +44,19 @@ class MainActivity : AppCompatActivity() {
         val apiService = ApiService("")
         fetchJobDetailsJob = CoroutineScope(Dispatchers.IO).launch {
 
-            while (isActive) { // Check if the coroutine is active
-                try {
-                    val res = apiService.invokeGraphQlTOGetShifts()
-                    if (res == "No_Data_Found"){
-                        delay(120000)
-                    }
-                    fetchJobDetails(res)
-                } catch (e: Exception) {
-                    Log.e("SM", "Error in loop: ${e.message}")
-                    break
-                }
-                delay(1000) // Replace Thread.sleep with delay
-            }
+//            while (isActive) { // Check if the coroutine is active
+//                try {
+//                    val res = apiService.invokeGraphQlTOGetShifts()
+//                    if (res == "No_Data_Found"){
+//                        delay(120000)
+//                    }
+//                    fetchJobDetails(res)
+//                } catch (e: Exception) {
+//                    Log.e("SM", "Error in loop: ${e.message}")
+//                    break
+//                }
+//                delay(1000) // Replace Thread.sleep with delay
+//            }
         }
         clearLogs.setOnClickListener {
             logBuilder.clear()

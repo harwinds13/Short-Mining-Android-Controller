@@ -61,7 +61,6 @@ class ApiService (private val authToken: String){
     }
 
     fun queryCandidate(bbCandidateI: String): Triple<String, String, String>? {
-        val url = "https://zuzm2l7jovcizd7movvfj7qt3y.appsync-api.us-east-1.amazonaws.com/graphql"
 
         // GraphQL query and variables
         val query = "query queryCandidate(\$bbCandidateId: String!) {\n  queryCandidate(bbCandidateId: \$bbCandidateId) {\n    candidateId\n    candidateSFId\n    firstName\n    middleName\n    lastName\n    preferredFirstName\n    preferredMiddleName\n    preferredLastName\n    nameSuffix\n    emailId\n    phoneNumber\n    phoneCountryCode\n    locale\n    additionalBackgroundInfo {\n      address {\n        addressLine1\n        addressLine2\n        city\n        state\n        country\n        zipcode\n        countryCode\n        __typename\n      }\n      dateOfBirth\n      __typename\n    }\n    timezone\n    language\n    englishName {\n      firstName\n      lastName\n      fromDate\n      toDate\n      __typename\n    }\n    __typename\n  }}"
@@ -76,7 +75,7 @@ class ApiService (private val authToken: String){
         }.toString()
 
         val request = Request.Builder()
-            .url(url)
+            .url("https://zuzm2l7jovcizd7movvfj7qt3y.appsync-api.us-east-1.amazonaws.com/graphql")
             .post(requestBody.toRequestBody(mediaType))
             .addHeader("accept", "*/*")
             .addHeader("accept-language", "en-US,en;q=0.9")
@@ -98,17 +97,25 @@ class ApiService (private val authToken: String){
             .addHeader("sec-fetch-site", "cross-site")
             .addHeader("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36")
             .build()
+            try {
+                client.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) {
+                        Log.e("SHORT_MINING", "Unexpected code: ${response.code}")
+                        return null
+                    }
+                    val responseBody = response.body?.string()
+                    return fetchCandidateDetails(responseBody ?: "")
+                    Log.i("SHORT_MINING", "Response Body: $responseBody")
+                }
 
-        client.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) {
-                Log.e("SHORT_MINING", "Unexpected code: ${response.code}")
+
+
+        }
+            catch (e: Exception){
+                Log.e("Short_Minings",e.message.toString())
+                e.printStackTrace()
                 return null
             }
-
-            val responseBody = response.body?.string()
-            return fetchCandidateDetails(responseBody ?: "")
-            Log.i("SHORT_MINING", "Response Body: $responseBody")
-        }
     }
 
     fun fetchCandidateDetails(response: String): Triple<String, String, String>? {
