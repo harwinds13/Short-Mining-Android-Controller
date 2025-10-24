@@ -11,7 +11,13 @@ import android.view.WindowManager
 import android.widget.Button
 import android.widget.ScrollView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.widget.AppCompatImageButton
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -23,57 +29,48 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var auth: FirebaseAuth
+    private var statusListener: ListenerRegistration? = null
     private lateinit var buttonEnableService: Button
     private lateinit var buttonClientViewActivity: Button
+    private var userId: String? = null
+    private lateinit var db: FirebaseFirestore
 
-    private val logBuilder = StringBuilder()
-    private lateinit var consoleTextView: TextView
-    private lateinit var scrollView: ScrollView
-    private lateinit var clearLogs: AppCompatImageButton
-    private var fetchJobDetailsJob: Job? = null
+    private lateinit var tvVendorName: TextView
+    private lateinit var tvVendorEmail: TextView
+    private lateinit var tvVendorPhone: TextView
+    private lateinit var tvVendorCompany: TextView
     @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        consoleTextView = findViewById(R.id.consoleTextView)
-        clearLogs = findViewById(R.id.buttonClearLogs)
-        scrollView = findViewById(R.id.consoleScrollView)
+        tvVendorName = findViewById(R.id.tvVendorName)
+        tvVendorEmail = findViewById(R.id.tvVendorEmail)
+        tvVendorPhone = findViewById(R.id.tvVendorPhone)
+        tvVendorCompany = findViewById(R.id.tvVendorCompany)
+
+        tvVendorName.text = "Loading..."
+        auth = FirebaseAuth.getInstance()
+        db = FirebaseFirestore.getInstance()
+        userId = intent.getStringExtra("USER_ID") ?: auth.currentUser?.uid
+        if (userId == null) {
+            Toast.makeText(this, "Authentication error. Please login again.", Toast.LENGTH_SHORT).show()
+            goToLogin()
+            return
+        } else {
+            setContentView(R.layout.activity_main)
+        }
+
+        setupStatusListener(userId!!)
+
+
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-
-        val apiService = ApiService("")
-        fetchJobDetailsJob = CoroutineScope(Dispatchers.IO).launch {
-
-//            while (isActive) { // Check if the coroutine is active
-//                try {
-//                    val res = apiService.invokeGraphQlTOGetShifts()
-//                    if (res == "No_Data_Found"){
-//                        delay(120000)
-//                    }
-//                    fetchJobDetails(res)
-//                } catch (e: Exception) {
-//                    Log.e("SM", "Error in loop: ${e.message}")
-//                    break
-//                }
-//                delay(1000) // Replace Thread.sleep with delay
-//            }
-        }
-        clearLogs.setOnClickListener {
-            logBuilder.clear()
-            consoleTextView.text = ""
-            try {
-                Runtime.getRuntime().exec("logcat -c") // Clear logcat buffer
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-            Log.i("SM", "Logs cleared")
-        }
-        startReadingLogs(consoleTextView, scrollView)
-
 
 
         buttonEnableService = findViewById(R.id.button)
         buttonClientViewActivity = findViewById(R.id.buttonToList)
+        loadVendorProfile(userId!!)
         buttonEnableService.setOnClickListener {
             val intent = Intent(this, WebView::class.java)
             intent.putExtra("url", "https://hiring.amazon.ca")
@@ -84,74 +81,68 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun fetchJobDetails(response: String) {
-        try {
-            val jsonResponse = JSONObject(response)
-            val jobCards = jsonResponse
-                .getJSONObject("data")
-                .getJSONObject("searchJobCardsByLocation")
-                .getJSONArray("jobCards")
+    private fun loadVendorProfile(userId: String) {
+        val currentUser = auth.currentUser ?: return
 
-            for (i in 0 until jobCards.length()) {
-                val jobCard = jobCards.getJSONObject(i)
-                val locationName = jobCard.getString("locationName")
-                val jobTypeL10N = jobCard.getString("jobTypeL10N")
-                val scheduleCount = jobCard.getInt("scheduleCount")
-                val timestamp = System.currentTimeMillis()
-                // Log or use the extracted values
-                Log.i("SM", "Location: $locationName, Job Type: $jobTypeL10N, Schedule Count: $scheduleCount")
+        db.collection("users")
+            .document(userId)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document != null && document.exists()) {
 
-                val sharedPreferences = getSharedPreferences("JobDetails", MODE_PRIVATE)
-                val editor = sharedPreferences.edit()
-
-                val existingData = sharedPreferences.getString("jobDetails", "") ?: ""
-                val newData = "Location: $locationName, Job Type: $jobTypeL10N, Schedule Count: $scheduleCount, Time: $timestamp"
-
-                val updatedData = if (existingData.isNotEmpty()) {
-                    "$existingData\n$newData"
+                    var name = document.getString("name")?: "N/A"
+                    Toast.makeText(this, "User profile loaded."+name, Toast.LENGTH_SHORT).show()
+                    tvVendorName.text = name
+                    tvVendorEmail.text = document.getString("email") ?: currentUser.email ?: "N/A"
+                    tvVendorPhone.text = document.getString("phone") ?: "N/A"
+                    tvVendorCompany.text = document.getString("company") ?: "N/A"
                 } else {
-                    newData
+                    Toast.makeText(this, "User profile not found.", Toast.LENGTH_SHORT).show()
+                    // If user document doesn't exist, show email from auth
+                    tvVendorEmail.text = currentUser.email ?: "N/A"
+                    tvVendorName.text = currentUser.displayName ?: "Vendor"
+                    tvVendorPhone.text = "N/A"
+                    tvVendorCompany.text = "N/A"
                 }
-
-                editor.putString("jobDetails", updatedData)
-                editor.apply()
-
             }
-        } catch (e: Exception) {
-            Log.e("SM", "Error parsing job details: ${e.message}")
-        }
+            .addOnFailureListener { e ->
+                // Show default values on failure
+                tvVendorEmail.text = currentUser.email ?: "N/A"
+                tvVendorName.text = "Vendor"
+                tvVendorPhone.text = "N/A"
+                tvVendorCompany.text = "N/A"
+            }
     }
+
     override fun onDestroy() {
         super.onDestroy()
-        fetchJobDetailsJob?.cancel()
     }
-    private fun startReadingLogs(consoleTextView: TextView, scrollView: ScrollView) {
+    private fun goToLogin() {
+        val intent = Intent(this, LoginActivity::class.java)
+        startActivity(intent)
+        finish()
+    }
 
-        Thread {
-            try {
-                val process = Runtime.getRuntime().exec("logcat -v time SM:I *:S")
-                val reader = BufferedReader(InputStreamReader(process.inputStream))
-                var line: String?
-                while (reader.readLine().also { line = it } != null) {
-                    line?.let {
-                        val coloredLine = when {
-                            it.contains("D/SM") -> "<font color='#FFFF00'>$it</font><br>"
-                            it.contains("I/SM") -> "<font color='#00FF00'>$it</font><br>"
-                            it.contains("E/SM") -> "<font color='#FF0000'>$it</font><br>"
-                            else -> "<font color='#FFFFFF'>$it</font><br>"
-                        }
-                        consoleTextView.post {
-                            logBuilder.append(coloredLine)
-                            consoleTextView.text = Html.fromHtml(logBuilder.toString(), Html.FROM_HTML_MODE_LEGACY)
-                            scrollView.post {
-                                scrollView.fullScroll(View.FOCUS_DOWN)
-                            }
-                        }
-                    }
+    private fun setupStatusListener(userId: String) {
+        val db = Firebase.firestore
+
+        statusListener = db.collection("users").document(userId)
+            .addSnapshotListener { documentSnapshot, error ->
+                if (error != null) {
+                    return@addSnapshotListener
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
+
+                if (documentSnapshot != null && documentSnapshot.exists()) {
+                    val status = documentSnapshot.getString("status")
+                    if (status != "active") {
+                        auth.signOut()
+                        goToLogin()
+                    }
+                } else {
+                    auth.signOut()
+                    goToLogin()
+                }
             }
-        }.start()
     }
+
 }

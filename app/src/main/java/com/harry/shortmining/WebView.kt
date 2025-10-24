@@ -7,11 +7,16 @@ import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.EditText
+import android.widget.Spinner
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -86,8 +91,45 @@ class WebView : AppCompatActivity() {
         executeServiceButton.setOnClickListener {
             // TODO i want on popup on screen where i can add few more parameters
 
-            webView.evaluateJavascript(
-                """
+            showParametersDialog()
+        }
+
+    }
+    private fun showParametersDialog() {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_parameters, null)
+
+        val spinnerParam1 = dialogView.findViewById<Spinner>(R.id.spinnerParam1)
+        val spinnerParam2 = dialogView.findViewById<Spinner>(R.id.spinnerParam2)
+
+        // Define options for first dropdown
+        val param1Options = arrayOf("HELP_HUB")
+        val adapter1 = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, param1Options)
+        spinnerParam1.adapter = adapter1
+
+        // Define options for second dropdown
+        val param2Options = arrayOf("1", "2", "3")
+        val adapter2 = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, param2Options)
+        spinnerParam2.adapter = adapter2
+
+        AlertDialog.Builder(this)
+            .setTitle("Select Parameters")
+            .setView(dialogView)
+            .setPositiveButton("Submit") { dialog, _ ->
+                val param1 = spinnerParam1.selectedItem.toString()
+                val param2 = spinnerParam2.selectedItem.toString()
+
+                executeService(param1, param2)
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .create()
+            .show()
+    }
+    private fun executeService(additionalParam1: String, additionalParam2: String) {
+        webView.evaluateJavascript(
+            """
             (function() {
                 try {
                     var requiredData = {};
@@ -107,6 +149,10 @@ class WebView : AppCompatActivity() {
                         requiredData.distance = distance;
                         requiredData.jobType = workHours;
                         requiredData.fullLocal = localStorage
+                        
+                        // Add additional parameters
+                        requiredData.vendor = "$additionalParam1";
+                        requiredData.priority = "$additionalParam2";
 
                         AndroidInterface.sendLocalStorage(JSON.stringify(requiredData));
                     } else {
@@ -117,12 +163,8 @@ class WebView : AppCompatActivity() {
                 }
             })();
             """.trimIndent(), null
-            )
-        }
-
+        )
     }
-
-
     inner class WebAppInterface {
         @JavascriptInterface
         fun sendLocalStorage(data: String) {
@@ -151,6 +193,7 @@ class WebView : AppCompatActivity() {
                         && doc["expireTime"] != null && (doc["expireTime"] as Long) > currentTime) {
                     jsonObject.put("status", "submitted")
                     jsonObject.put("status_new", "submitted")
+                    jsonObject.put("updatedAt", currentTime)
                     firestore.addDocument(this,"client_sheet", bbCandidateId, jsonObject)
                 } else if (status in listOf("processing","token_expired","finished","documentation","submitted")
                         && doc["expireTime"] != null && (doc["expireTime"] as Long) < currentTime) {
@@ -158,6 +201,7 @@ class WebView : AppCompatActivity() {
                     jsonObject.put("status", "submitted")
                     jsonObject.put("status_new", "submitted")
                     jsonObject.put("expireTime", expireTime)
+                    jsonObject.put("updatedAt", currentTime)
                     firestore.addDocument(this,"client_sheet", bbCandidateId, jsonObject)
                 }else if(status in listOf("processing")
                     && doc["expireTime"] != null && (doc["expireTime"] as Long) > currentTime){
@@ -181,6 +225,7 @@ class WebView : AppCompatActivity() {
                 jsonObject.put("status", "submitted")
                 jsonObject.put("status_new", "submitted")
                 jsonObject.put("expireTime", expireTime)
+                jsonObject.put("updatedAt", currentTime)
                 firestore.addDocument(this,"client_sheet", bbCandidateId, jsonObject)
             }
         }

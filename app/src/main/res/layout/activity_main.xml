@@ -4,68 +4,177 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#F5F5F5"
     tools:context=".MainActivity">
 
-    <!-- Console Header with Clear Logs button -->
-    <LinearLayout
-        android:id="@+id/logHeader"
+    <!-- Vendor Profile Card -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/vendorProfileCard"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:background="#232323"
-        android:padding="8dp"
+        android:layout_margin="16dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_margin="4dp">
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <TextView
-            android:id="@+id/logTitle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="Shift Logs"
-            android:layout_marginTop="16dp"
-            android:textColor="#FFFFFF"
-            android:textSize="16sp"
-            android:layout_weight="1"
-            android:gravity="center_vertical" />
-
-        <ImageButton
-            android:id="@+id/buttonClearLogs"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_menu_delete"
-            android:contentDescription="Clear Logs"
-            android:padding="8dp"
-            app:tint="#FF9800" />
-    </LinearLayout>
-
-    <!-- Console Screen -->
-    <ScrollView
-        android:id="@+id/consoleScrollView"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:background="#1A1A1A"
-        app:layout_constraintTop_toBottomOf="@+id/logHeader"
-        app:layout_constraintBottom_toTopOf="@+id/buttonBar"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginStart="4dp"
-        android:layout_marginEnd="4dp">
-
-        <TextView
-            android:id="@+id/consoleTextView"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp"
-            android:typeface="monospace"
-            android:text="Console output will appear here..."
-            android:padding="12dp" />
-    </ScrollView>
+            android:orientation="vertical"
+            android:padding="20dp">
 
-    <!-- Button Bar (WebView & Client List) -->
+            <!-- Profile Header -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Vendor Profile"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="#212121"
+                android:layout_marginBottom="16dp"/>
+
+            <!-- Profile Icon and Name -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="12dp">
+
+                <ImageView
+                    android:id="@+id/ivProfileIcon"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:src="@android:drawable/ic_menu_myplaces"
+                    android:padding="12dp"
+                    app:tint="@color/colorPrimary"/>
+
+                <TextView
+                    android:id="@+id/tvVendorName"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="John Doe"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="#212121"
+                    android:layout_marginStart="16dp"/>
+            </LinearLayout>
+
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#E0E0E0"
+                android:layout_marginVertical="12dp"/>
+
+            <!-- Email -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="12dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@android:drawable/ic_dialog_email"
+                    app:tint="#757575"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Email:"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="#757575"
+                    android:layout_marginStart="12dp"
+                    android:minWidth="80dp"/>
+
+                <TextView
+                    android:id="@+id/tvVendorEmail"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="vendor@example.com"
+                    android:textSize="14sp"
+                    android:textColor="#212121"/>
+            </LinearLayout>
+
+            <!-- Phone Number -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="12dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@android:drawable/stat_sys_phone_call"
+                    app:tint="#757575"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Phone:"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="#757575"
+                    android:layout_marginStart="12dp"
+                    android:minWidth="80dp"/>
+
+                <TextView
+                    android:id="@+id/tvVendorPhone"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="+1 234 567 8900"
+                    android:textSize="14sp"
+                    android:textColor="#212121"/>
+            </LinearLayout>
+
+            <!-- Company -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@android:drawable/ic_menu_info_details"
+                    app:tint="#757575"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Company:"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="#757575"
+                    android:layout_marginStart="12dp"
+                    android:minWidth="80dp"/>
+
+                <TextView
+                    android:id="@+id/tvVendorCompany"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="ABC Company Ltd."
+                    android:textSize="14sp"
+                    android:textColor="#212121"/>
+            </LinearLayout>
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Action Buttons -->
     <LinearLayout
         android:id="@+id/buttonBar"
         android:layout_width="0dp"
@@ -73,18 +182,21 @@
         android:orientation="horizontal"
         android:gravity="center"
         android:padding="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/vendorProfileCard"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_margin="16dp">
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="8dp">
 
         <Button
             android:id="@+id/button"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="60dp"
             android:text="Web View"
             android:backgroundTint="@color/colorPrimary"
             android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold"
             android:layout_marginEnd="8dp"
             android:layout_weight="1"
             android:padding="12dp" />
@@ -92,10 +204,12 @@
         <Button
             android:id="@+id/buttonToList"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="60dp"
             android:text="Client List"
             android:backgroundTint="@color/colorAccent"
             android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold"
             android:layout_marginStart="8dp"
             android:layout_weight="1"
             android:padding="12dp" />

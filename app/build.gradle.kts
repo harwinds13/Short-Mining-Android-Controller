@@ -44,14 +44,13 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.2.1")
     implementation("com.google.firebase:firebase-firestore-ktx:25.1.4")
 
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.3.0")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
     // depencdency for making network calls
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
-    implementation(platform("com.google.firebase:firebase-bom:34.3.0"))
+    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
     implementation("com.google.code.gson:gson:2.11.0")
+
+    implementation("com.google.firebase:firebase-auth")
 
 
 

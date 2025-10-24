@@ -68,7 +68,7 @@ class ClientSheetView : AppCompatActivity() {
     }
 
     private fun showFilterDialog() {
-        val filterOptions = arrayOf("All", "Submitted", "Waiting", "Processing", "Token Expired", "System Interrupt", "Finished")
+        val filterOptions = arrayOf("All", "Submitted", "Processing", "Token Expired", "System Interrupt", "Finished")
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Filter Clients")
         builder.setItems(filterOptions) { _, which ->
@@ -145,6 +145,7 @@ class ClientSheetView : AppCompatActivity() {
         showLoading(true)
 
         db.collection(COLLECTION_NAME)
+            .whereEqualTo("vendor", "HELP_HUB")
             .addSnapshotListener { snapshots, error ->
                 if (error != null) {
                     Log.e(TAG, "Listen failed.", error)
