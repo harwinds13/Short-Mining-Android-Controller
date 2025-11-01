@@ -2,7 +2,6 @@ package com.harry.shortmining
 
 import FirestoreService
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -12,15 +11,14 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.harry.shortmining.adapters.ClientAdapter
 import com.harry.shortmining.models.Client
-import org.json.JSONObject
 
 class ClientSheetView : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
