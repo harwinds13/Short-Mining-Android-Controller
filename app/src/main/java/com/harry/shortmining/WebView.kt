@@ -3,6 +3,7 @@ package com.harry.shortmining
 import FirestoreService
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -13,11 +14,11 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.ArrayAdapter
 import android.widget.Button
-import android.widget.EditText
 import android.widget.Spinner
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.lifecycleScope
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -27,11 +28,22 @@ class WebView : AppCompatActivity() {
     private lateinit var webView: WebView
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var executeServiceButton:Button
-
+    private lateinit var auth: FirebaseAuth
+    private var userId: String? = null
     @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_web_view)
+
+        auth = FirebaseAuth.getInstance()
+
+        userId = intent.getStringExtra("USER_ID") ?: auth.currentUser?.uid
+
+        if (userId == null) {
+            Toast.makeText(this, "Authentication error. Please login again.", Toast.LENGTH_SHORT).show()
+            goToLogin()
+            return
+        }
         val url = intent.getStringExtra("url") ?: "https://your-url.com"
         val accessToken = intent.getStringExtra("accessToken") ?: ""
         val awswaf_session_storage = intent.getStringExtra("awswaf_session_storage") ?: ""
@@ -89,8 +101,6 @@ class WebView : AppCompatActivity() {
         }
 
         executeServiceButton.setOnClickListener {
-            // TODO i want on popup on screen where i can add few more parameters
-
             showParametersDialog()
         }
 
@@ -100,9 +110,16 @@ class WebView : AppCompatActivity() {
 
         val spinnerParam1 = dialogView.findViewById<Spinner>(R.id.spinnerParam1)
         val spinnerParam2 = dialogView.findViewById<Spinner>(R.id.spinnerParam2)
+        val sharedPreferences = getSharedPreferences("VendorPrefs", MODE_PRIVATE)
+        val company = sharedPreferences.getString("company", "Default Company")
+        var companies: List<String>
+        if(company == "Admin"){
+            companies = listOf("HELP_HUB", "SKY_ATOZ", "HARGUN", "SHORT_MINING", "MANI")
+        }else{
+            companies = listOf(company!!)
 
-        // Define options for first dropdown
-        val param1Options = arrayOf("HELP_HUB")
+        }
+        val param1Options = companies
         val adapter1 = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, param1Options)
         spinnerParam1.adapter = adapter1
 
@@ -231,5 +248,12 @@ class WebView : AppCompatActivity() {
         }
 
 
+    }
+
+    private fun goToLogin() {
+        val intent = Intent(this, LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
     }
 }

@@ -49,7 +49,7 @@ class ClientAdapter(private var clientList: List<Client>,
         val readableExpireTime = dateFormat.format(Date(client.expireTime))
         holder.tokenExpireTimeTextView.text = "Expiry: $readableExpireTime"
         holder.applicationStatusTextView.text = "Status: ${client.status} "
-        holder.errorTextView.text = "Error: ${client.error}"
+        holder.errorTextView.text = "Vendor: ${client.vendor}"
         holder.podTextView.text = "POD: ${client.pod}"
         holder.phoneTextView.text = client.clientPhoneNumber
         holder.addressTextView.text = client.location

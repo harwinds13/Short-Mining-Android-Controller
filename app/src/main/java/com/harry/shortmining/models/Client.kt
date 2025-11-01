@@ -14,6 +14,8 @@ data class Client(
     val job: String = "",
     val sch: String = "",
     val applicationId:String = "",
+    val vendor:String = "",
+    val status_new:String = "",
     val fullLocal: LocalStorage = LocalStorage()
 ) {
     constructor() : this("", 0, "", "", "","")

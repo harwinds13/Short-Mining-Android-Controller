@@ -16,6 +16,7 @@
         app:cardCornerRadius="12dp"
         app:cardElevation="4dp"
         app:layout_constraintTop_toTopOf="parent"
+        android:background="#F5F5F5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
@@ -23,6 +24,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:background="#F5F5F5"
             android:padding="20dp">
 
             <!-- Profile Header -->
@@ -192,7 +194,7 @@
             android:id="@+id/button"
             android:layout_width="0dp"
             android:layout_height="60dp"
-            android:text="Web View"
+            android:text="Hiring Portal"
             android:backgroundTint="@color/colorPrimary"
             android:textColor="#FFFFFF"
             android:textSize="16sp"
@@ -214,5 +216,24 @@
             android:layout_weight="1"
             android:padding="12dp" />
     </LinearLayout>
+
+    <!-- Sign Out Button -->
+    <Button
+        android:id="@+id/buttonSignOut"
+        android:layout_width="0dp"
+        android:layout_height="60dp"
+        android:text="Sign Out"
+        android:backgroundTint="#D32F2F"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:drawableLeft="@android:drawable/ic_lock_power_off"
+        android:drawablePadding="8dp"
+        android:padding="12dp"
+        app:layout_constraintTop_toBottomOf="@+id/buttonBar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="8dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

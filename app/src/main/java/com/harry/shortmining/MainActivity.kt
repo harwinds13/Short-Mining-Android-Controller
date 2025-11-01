@@ -40,44 +40,56 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvVendorEmail: TextView
     private lateinit var tvVendorPhone: TextView
     private lateinit var tvVendorCompany: TextView
+    private lateinit var buttonSignOut:Button
+
     @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_main) // Set content view FIRST
 
-        tvVendorName = findViewById(R.id.tvVendorName)
-        tvVendorEmail = findViewById(R.id.tvVendorEmail)
-        tvVendorPhone = findViewById(R.id.tvVendorPhone)
-        tvVendorCompany = findViewById(R.id.tvVendorCompany)
-
-        tvVendorName.text = "Loading..."
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
         userId = intent.getStringExtra("USER_ID") ?: auth.currentUser?.uid
+
         if (userId == null) {
             Toast.makeText(this, "Authentication error. Please login again.", Toast.LENGTH_SHORT).show()
             goToLogin()
             return
-        } else {
-            setContentView(R.layout.activity_main)
         }
 
-        setupStatusListener(userId!!)
-
-
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-
-
+        // Initialize views AFTER setContentView
+        tvVendorName = findViewById(R.id.tvVendorName)
+        tvVendorEmail = findViewById(R.id.tvVendorEmail)
+        tvVendorPhone = findViewById(R.id.tvVendorPhone)
+        tvVendorCompany = findViewById(R.id.tvVendorCompany)
         buttonEnableService = findViewById(R.id.button)
         buttonClientViewActivity = findViewById(R.id.buttonToList)
+        buttonSignOut = findViewById(R.id.buttonSignOut)
+
+        // Now set the loading text
+        tvVendorName.text = "Loading..."
+        tvVendorEmail.text = "Loading..."
+        tvVendorPhone.text = "Loading..."
+        tvVendorCompany.text = "Loading..."
+
+        setupStatusListener(userId!!)
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
         loadVendorProfile(userId!!)
+
         buttonEnableService.setOnClickListener {
             val intent = Intent(this, WebView::class.java)
             intent.putExtra("url", "https://hiring.amazon.ca")
             startActivity(intent)
         }
+
         buttonClientViewActivity.setOnClickListener {
             startActivity(Intent(this, ClientSheetView::class.java))
+        }
+
+        buttonSignOut.setOnClickListener {
+            auth.signOut()
+            goToLogin()
         }
     }
 
@@ -89,13 +101,20 @@ class MainActivity : AppCompatActivity() {
             .get()
             .addOnSuccessListener { document ->
                 if (document != null && document.exists()) {
-
-                    var name = document.getString("name")?: "N/A"
-                    Toast.makeText(this, "User profile loaded."+name, Toast.LENGTH_SHORT).show()
+                    val name = document.getString("name") ?: "N/A"
+                    val company = document.getString("company") ?: "N/A"
+                    Toast.makeText(this, "User profile loaded: $name", Toast.LENGTH_SHORT).show()
                     tvVendorName.text = name
+
                     tvVendorEmail.text = document.getString("email") ?: currentUser.email ?: "N/A"
                     tvVendorPhone.text = document.getString("phone") ?: "N/A"
-                    tvVendorCompany.text = document.getString("company") ?: "N/A"
+                    tvVendorCompany.text = company
+                    //Store company in SharedPreferences
+                    val sharedPreferences = getSharedPreferences("VendorPrefs", MODE_PRIVATE)
+                    val editor = sharedPreferences.edit()
+                    editor.putString("company", company)
+                    editor.apply()
+
                 } else {
                     Toast.makeText(this, "User profile not found.", Toast.LENGTH_SHORT).show()
                     // If user document doesn't exist, show email from auth
@@ -106,6 +125,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             .addOnFailureListener { e ->
+                Toast.makeText(this, "Error loading profile: ${e.message}", Toast.LENGTH_SHORT).show()
                 // Show default values on failure
                 tvVendorEmail.text = currentUser.email ?: "N/A"
                 tvVendorName.text = "Vendor"
@@ -116,9 +136,12 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        statusListener?.remove()
     }
+
     private fun goToLogin() {
         val intent = Intent(this, LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finish()
     }
@@ -129,6 +152,7 @@ class MainActivity : AppCompatActivity() {
         statusListener = db.collection("users").document(userId)
             .addSnapshotListener { documentSnapshot, error ->
                 if (error != null) {
+                    Log.e("MainActivity", "Error listening to status", error)
                     return@addSnapshotListener
                 }
 
@@ -144,5 +168,4 @@ class MainActivity : AppCompatActivity() {
                 }
             }
     }
-
 }

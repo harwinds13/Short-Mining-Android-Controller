@@ -16,6 +16,7 @@ import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.harry.shortmining.adapters.ClientAdapter
 import com.harry.shortmining.models.Client
@@ -28,6 +29,8 @@ class ClientSheetView : AppCompatActivity() {
     private lateinit var tvEmptyState: TextView
     private val clientList = mutableListOf<Client>()
     private lateinit var db: FirebaseFirestore
+    private lateinit var auth: FirebaseAuth
+    private var userId: String? = null
     companion object {
         private const val TAG = "MainActivity"
         private const val COLLECTION_NAME = "client_sheet" // Change this to your collection name
@@ -35,6 +38,16 @@ class ClientSheetView : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_client_sheet_view)
+
+        auth = FirebaseAuth.getInstance()
+
+        userId = intent.getStringExtra("USER_ID") ?: auth.currentUser?.uid
+
+        if (userId == null) {
+            Toast.makeText(this, "Authentication error. Please login again.", Toast.LENGTH_SHORT).show()
+            goToLogin()
+            return
+        }
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -82,11 +95,12 @@ class ClientSheetView : AppCompatActivity() {
         val filteredList = when (filter) {
             "Submitted" -> clientList.filter { it.status == "submitted" }
             "Waiting" -> clientList.filter { it.status == "waiting" }
-            "Processing" -> clientList.filter { it.status == "processing" }
+            "Processing" -> clientList.filter { it.status == "processing" || it.status == "finished"  || it.status == "submitted" }
             "Token Expired" -> clientList.filter { it.status == "token_expired" }
             "System Interrupt" -> clientList.filter { it.status == "system_interrupt" }
             "Finished" -> clientList.filter { it.status == "finished" }
-            else -> clientList
+            "All" -> clientList
+            else -> clientList.filter { it.status == "processing"  }
         }
         clientAdapter.updateList(filteredList)
     }
@@ -143,9 +157,18 @@ class ClientSheetView : AppCompatActivity() {
     }
     private fun fetchClientsWithRealtimeUpdates() {
         showLoading(true)
+        val sharedPreferences = getSharedPreferences("VendorPrefs", MODE_PRIVATE)
+        val company = sharedPreferences.getString("company", "Default Company")
+        var companies: List<String>
+        if(company == "Admin"){
+            companies = listOf("HELP_HUB", "SKY_ATOZ", "HARGUN", "SHORT_MINING", "MANI")
+        }else{
+            companies = listOf(company!!)
+
+        }
 
         db.collection(COLLECTION_NAME)
-            .whereEqualTo("vendor", "HELP_HUB")
+            .whereIn("vendor", companies)
             .addSnapshotListener { snapshots, error ->
                 if (error != null) {
                     Log.e(TAG, "Listen failed.", error)
@@ -181,6 +204,12 @@ class ClientSheetView : AppCompatActivity() {
         recyclerView.visibility = if (show) View.GONE else View.VISIBLE
     }
 
+    private fun goToLogin() {
+        val intent = Intent(this, LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
+    }
 
 
 
